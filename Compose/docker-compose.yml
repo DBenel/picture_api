@@ -1,0 +1,37 @@
+version: '3.1'
+
+services:
+
+  compose-mysql:
+    build: 
+        context: MySQL
+    container_name: compose-mysql
+    env_file:
+        - MySQL/production.env
+    ports: ['3306:3306']
+    networks:
+        - net
+
+  compose-python:
+    build:
+        context: API
+    container_name: compose-python
+    volumes:
+        - picture_api:/var/lib/docker/volumes
+    env_file:
+        - API/.env
+    entrypoint:
+        - waitress-serve
+        - --listen
+        - 0.0.0.0:80
+        - --call
+        - 'application:create_app'
+    ports: ['0.0.0.0:80:80']
+    links:
+        - compose-mysql
+    networks:
+        - net
+volumes:
+    picture_api:
+networks:
+    net:
